@@ -171,6 +171,5 @@ dist
 # IntelliJ based IDEs
 .idea
 
-# esbuild, s3rver, etc. outputs
-tmp
+# esbuild outputs
 **/*.js

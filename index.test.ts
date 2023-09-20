@@ -1,69 +1,90 @@
-import { it, describe, before, after } from "mocha";
+import { it, describe, before } from "mocha";
 import { expect } from "expect";
-import FakeS3Server from "s3rver";
-import {
-  CreateBucketCommand,
-  ListBucketsCommand,
-  ListObjectsV2Command,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 import { upload } from "./lib";
 import * as path from "path";
 
-describe("upload", () => {
-  let fakeS3Server: FakeS3Server;
-  let fakeS3ServerInfo: { address: string; port: number };
+describe("upload", function () {
+  // Uploads take seconds to complete.
+  this.timeout(10000);
+
+  const testRunId = Math.floor(Math.random() * 1000000);
+  let s3Client: S3Client;
+  const bucketName = "test-checksums";
 
   before(async () => {
-    fakeS3Server = new FakeS3Server({
-      address: "127.0.0.1",
-      silent: false,
-      resetOnClose: true,
-      directory: path.join(__dirname, "./tmp/s3rver"),
-    });
-
-    fakeS3ServerInfo = await fakeS3Server.run();
-    fakeS3Server.reset();
+    s3Client = new S3Client({});
   });
 
-  after(async () => {
-    await fakeS3Server.close();
-  });
-
-  it("single file, 1MB", async () => {
-    const s3Client = new S3Client({
-      endpoint: `http://${fakeS3ServerInfo.address}:${fakeS3ServerInfo.port}`,
-      credentials: {
-        accessKeyId: "S3RVER",
-        secretAccessKey: "S3RVER",
-      },
-    });
-
-    await s3Client.send(
-      new CreateBucketCommand({
-        Bucket: "test",
-      }),
-    );
-
+  it("single file, 1MB", async function () {
     await upload({
       s3Client,
-      bucket: "test",
-      key: "foobar",
+      bucket: bucketName,
+      key: `test-1-mb-${testRunId}`,
       folderPath: path.join(__dirname, "fixtures/single-file-1-mb"),
+      ttl: 1,
     });
 
     const response = await s3Client.send(
       new ListObjectsV2Command({
-        Bucket: "test",
+        Bucket: bucketName,
       }),
     );
 
-    expect(response.Contents).toContain({
-      Key: "foo",
-      ETag: "bar",
-    });
+    expect(response.Contents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          Key: `test-1-mb-${testRunId}`,
+        }),
+      ]),
+    );
   });
 
-  it.skip("single file, 10MB", () => {});
-  it.skip("two files", () => {});
+  it("single file, 10MB", async function () {
+    await upload({
+      s3Client,
+      bucket: bucketName,
+      key: `test-10-mb-${testRunId}`,
+      folderPath: path.join(__dirname, "fixtures/single-file-10-mb"),
+      ttl: 1,
+    });
+
+    const response = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+      }),
+    );
+
+    expect(response.Contents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          Key: `test-10-mb-${testRunId}`,
+        }),
+      ]),
+    );
+  });
+
+  it("two files", async function () {
+    await upload({
+      s3Client,
+      bucket: bucketName,
+      key: `test-two-files-${testRunId}`,
+      folderPath: path.join(__dirname, "fixtures/two-files"),
+      ttl: 1,
+    });
+
+    const response = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: bucketName,
+      }),
+    );
+
+    expect(response.Contents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          Key: `test-two-files-${testRunId}`,
+        }),
+      ]),
+    );
+  });
 });
