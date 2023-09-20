@@ -3,11 +3,13 @@
   "module": "index.ts",
   "scripts": {
     "bundle": "esbuild index.ts --bundle --platform=node --packages=external",
-    "bundle:test": "esbuild index.test.ts --bundle --platform=node --packages=external > tmp/esbuild/index.test.js",
-    "test": "npm run bundle:test && mocha tmp/esbuild/index.test.js"
+    "bundle:test": "esbuild index.test.ts --bundle --platform=node --packages=external > index.test.js",
+    "test": "npm run bundle:test && mocha index.test.js",
+    "test:debug": "npm run bundle:test && node --inspect-brk node_modules/.bin/mocha -t 0 index.test.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.414.0",
+    "@aws-sdk/lib-storage": "^3.414.0",
     "tar": "^6.2.0"
   },
   "devDependencies": {

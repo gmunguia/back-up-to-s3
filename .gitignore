@@ -173,3 +173,4 @@ dist
 
 # esbuild, s3rver, etc. outputs
 tmp
+**/*.js

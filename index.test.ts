@@ -23,17 +23,14 @@ describe("upload", () => {
     });
 
     fakeS3ServerInfo = await fakeS3Server.run();
-
-    console.log("started");
+    fakeS3Server.reset();
   });
 
-  after(() => {
-    return fakeS3Server.close();
+  after(async () => {
+    await fakeS3Server.close();
   });
 
   it("single file, 1MB", async () => {
-    console.log(fakeS3ServerInfo);
-
     const s3Client = new S3Client({
       endpoint: `http://${fakeS3ServerInfo.address}:${fakeS3ServerInfo.port}`,
       credentials: {
@@ -42,19 +39,11 @@ describe("upload", () => {
       },
     });
 
-    console.log(
-      "10",
-      await s3Client.send(
-        new CreateBucketCommand({
-          Bucket: "test",
-        }),
-      ),
+    await s3Client.send(
+      new CreateBucketCommand({
+        Bucket: "test",
+      }),
     );
-
-    console.log("11");
-
-    const foo = await s3Client.send(new ListBucketsCommand({}));
-    console.log("20", foo);
 
     await upload({
       s3Client,
