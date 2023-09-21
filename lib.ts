@@ -1,5 +1,6 @@
 import { createHash, Hash } from "node:crypto";
 import { PassThrough, Readable, Transform } from "stream";
+import { glob } from "glob";
 import tar from "tar";
 import {
   CompleteMultipartUploadCommandOutput,
@@ -9,51 +10,44 @@ import { Upload } from "@aws-sdk/lib-storage";
 
 const PART_SIZE = 5 * 1024 * 1024; // 5 MB
 
-const dateToFolderPath = ({
-  basePath,
-  date,
-}: {
-  basePath: string;
-  date: Date;
-}) => {
-  const year = date.getFullYear().toString();
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-  return `${basePath}/${year}/${month}/${day}`;
-};
-
 export async function upload({
+  foldersToIncludeInArchive,
+  archiveBasePath,
   bucket,
-  folderPath,
   key,
   s3Client,
   ttl,
 }: {
+  foldersToIncludeInArchive: string[];
+  archiveBasePath: string;
   bucket: string;
-  folderPath: string;
   key: string;
   s3Client: S3Client;
   /** TTL in seconds */
-  ttl: number;
+  ttl?: number;
 }) {
   // The alternative to creating the tar twice is using https://www.npmjs.com/package/cloneable-readable, but I don't want another dependency. I don't care too much about performance anyway because this script runs once a day.
   const bodyStream = tar
     .create(
       {
-        cwd: folderPath,
-        gzip: true,
+        cwd: archiveBasePath,
+        gzip: {
+          level: 9,
+        },
       },
-      [folderPath],
+      foldersToIncludeInArchive,
     )
     .pipe(new PassThrough());
 
   const checksumStream = tar
     .create(
       {
-        cwd: folderPath,
-        gzip: true,
+        cwd: archiveBasePath,
+        gzip: {
+          level: 9,
+        },
       },
-      [folderPath],
+      foldersToIncludeInArchive,
     )
     .pipe(new PassThrough());
 
@@ -64,7 +58,7 @@ export async function upload({
       Key: key,
       Body: bodyStream,
       ChecksumAlgorithm: "SHA256",
-      Expires: new Date(Date.now() + ttl * 1000),
+      ...(ttl && { Expires: new Date(Date.now() + ttl * 1000) }),
     },
     partSize: PART_SIZE,
     leavePartsOnError: true,
@@ -157,4 +151,37 @@ const calculateChecksum = async (stream: Readable) => {
     .digest("base64");
 
   return `${checksumOfChecksums}-${checksumsOfParts.length}`;
+};
+
+export const backup = async ({
+  bucket,
+  s3Client,
+  assetsFolderPath,
+  date,
+  ttl,
+}: {
+  bucket: string;
+  s3Client: S3Client;
+  assetsFolderPath: string;
+  date: Date;
+  ttl?: number;
+}) => {
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+
+  const key = `backups/${year}/${month}/${date}.tgz`;
+
+  await upload({
+    archiveBasePath: assetsFolderPath,
+    bucket,
+    foldersToIncludeInArchive: await glob(
+      `${assetsFolderPath}/*/${year}/${month}/${day}`,
+    ),
+    key,
+    s3Client,
+    ttl,
+  });
+
+  return key;
 };
