@@ -2,21 +2,22 @@ import * as path from "path";
 import { it, describe, before } from "mocha";
 import { expect } from "expect";
 import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
-import { cleanEnv, str } from "envalid";
-
+import z from "zod";
 import { backUp } from "./back-up";
 
 describe("", function () {
   // Uploads take seconds to complete.
   this.timeout(10000);
 
-  const env = cleanEnv(process.env, {
-    BUCKET_NAME: str(),
-    AWS_ACCESS_KEY_ID: str(),
-    AWS_SECRET_ACCESS_KEY: str(),
-    AWS_SESSION_TOKEN: str(),
-    AWS_REGION: str(),
-  });
+  const env = z
+    .object({
+      AWS_ACCESS_KEY_ID: z.string(),
+      AWS_REGION: z.string(),
+      AWS_SECRET_ACCESS_KEY: z.string(),
+      AWS_SESSION_TOKEN: z.string(),
+      BUCKET_NAME: z.string(),
+    })
+    .parse(process.env);
 
   const testRunId = Math.floor(Math.random() * 1000000);
   const bucketName = env.BUCKET_NAME;

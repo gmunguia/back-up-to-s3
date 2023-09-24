@@ -2,7 +2,7 @@
   "name": "backup-immich-files",
   "module": "index.ts",
   "scripts": {
-    "bundle": "esbuild cli.ts --bundle --platform=node --packages=external > cli.js",
+    "bundle": "esbuild cli.ts --bundle --platform=node --packages=external --banner:js='#!/usr/bin/env node' > cli",
     "bundle:test": "esbuild back-up.test.ts --bundle --platform=node --packages=external > back-up.test.js",
     "test": "npm run bundle:test && mocha *.test.js",
     "test:debug": "npm run bundle:test && node --inspect-brk node_modules/.bin/mocha -t 0 *.test.js"
@@ -10,9 +10,10 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.414.0",
     "@aws-sdk/lib-storage": "^3.414.0",
-    "envalid": "^8.0.0",
+    "commander": "^11.0.0",
     "glob": "^10.3.5",
-    "tar": "^6.2.0"
+    "tar": "^6.2.0",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",

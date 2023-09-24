@@ -173,3 +173,4 @@ dist
 
 # esbuild outputs
 **/*.js
+cli
