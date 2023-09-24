@@ -1,66 +1,58 @@
 import { createHash, Hash } from "node:crypto";
-import { PassThrough, Readable, Transform } from "stream";
-import { glob } from "glob";
-import tar from "tar";
+import { Readable, Transform } from "node:stream";
 import {
   CompleteMultipartUploadCommandOutput,
   S3Client,
+  StorageClass,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 
-const PART_SIZE = 5 * 1024 * 1024; // 5 MB
+export const partSizeInBytes = 5 * 1024 * 1024; // 5 MB
 
-export async function upload({
-  foldersToIncludeInArchive,
-  archiveBasePath,
-  bucket,
+export const getBackupKey = (date: Date) => {
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+
+  return `backups/${year}/${month}/${day}.tgz`;
+};
+
+export const upload = async ({
+  body,
+  bucketName,
   key,
+  partSizeInBytes,
   s3Client,
-  ttl,
+  ttlInSeconds,
+  storageClass,
 }: {
-  foldersToIncludeInArchive: string[];
-  archiveBasePath: string;
-  bucket: string;
+  body: Readable;
+  bucketName: string;
   key: string;
+  partSizeInBytes: number;
   s3Client: S3Client;
-  /** TTL in seconds */
-  ttl?: number;
-}) {
-  // The alternative to creating the tar twice is using https://www.npmjs.com/package/cloneable-readable, but I don't want another dependency. I don't care too much about performance anyway because this script runs once a day.
-  const bodyStream = tar
-    .create(
-      {
-        cwd: archiveBasePath,
-        gzip: {
-          level: 9,
-        },
-      },
-      foldersToIncludeInArchive,
-    )
-    .pipe(new PassThrough());
-
-  const checksumStream = tar
-    .create(
-      {
-        cwd: archiveBasePath,
-        gzip: {
-          level: 9,
-        },
-      },
-      foldersToIncludeInArchive,
-    )
-    .pipe(new PassThrough());
-
+  ttlInSeconds?: number;
+  storageClass?: StorageClass;
+}): Promise<
+  | {
+      tag: "success";
+      checksum: string;
+    }
+  | { tag: "failure" }
+> => {
   const uploading = new Upload({
     client: s3Client,
     params: {
-      Bucket: bucket,
+      Bucket: bucketName,
       Key: key,
-      Body: bodyStream,
+      Body: body,
       ChecksumAlgorithm: "SHA256",
-      ...(ttl && { Expires: new Date(Date.now() + ttl * 1000) }),
+      ...(ttlInSeconds && {
+        Expires: new Date(Date.now() + ttlInSeconds * 1000),
+      }),
+      StorageClass: storageClass,
     },
-    partSize: PART_SIZE,
+    partSize: partSizeInBytes,
     leavePartsOnError: true,
   });
 
@@ -69,15 +61,11 @@ export async function upload({
     (await uploading.done()) as CompleteMultipartUploadCommandOutput;
 
   if (output.ChecksumSHA256 == null) {
-    throw new Error("upload failed");
+    return { tag: "failure" };
   }
 
-  if (output.ChecksumSHA256 !== (await calculateChecksum(checksumStream))) {
-    throw new Error("checksum did not validate");
-  }
-
-  return output.ChecksumSHA256;
-}
+  return { tag: "success", checksum: output.ChecksumSHA256 };
+};
 
 class StreamChunker extends Transform {
   private leftovers: Buffer;
@@ -133,9 +121,15 @@ class ChecksumCalculator extends Transform {
 
 // See https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html?icmpid=docs_amazons3_console#large-object-checksums.
 // At some point, the SDK may do this automatically. See https://github.com/aws/aws-sdk-js-v3/issues/2673
-const calculateChecksum = async (stream: Readable) => {
+export const calculateChecksum = async ({
+  partSizeInBytes,
+  stream,
+}: {
+  partSizeInBytes: number;
+  stream: Readable;
+}) => {
   const checksumsOfParts: Buffer[] = await stream
-    .pipe(new StreamChunker(PART_SIZE))
+    .pipe(new StreamChunker(partSizeInBytes))
     .pipe(new ChecksumCalculator())
     .toArray();
 
@@ -151,37 +145,4 @@ const calculateChecksum = async (stream: Readable) => {
     .digest("base64");
 
   return `${checksumOfChecksums}-${checksumsOfParts.length}`;
-};
-
-export const backup = async ({
-  bucket,
-  s3Client,
-  assetsFolderPath,
-  date,
-  ttl,
-}: {
-  bucket: string;
-  s3Client: S3Client;
-  assetsFolderPath: string;
-  date: Date;
-  ttl?: number;
-}) => {
-  const year = date.getFullYear().toString();
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
-
-  const key = `backups/${year}/${month}/${date}.tgz`;
-
-  await upload({
-    archiveBasePath: assetsFolderPath,
-    bucket,
-    foldersToIncludeInArchive: await glob(
-      `${assetsFolderPath}/*/${year}/${month}/${day}`,
-    ),
-    key,
-    s3Client,
-    ttl,
-  });
-
-  return key;
 };
