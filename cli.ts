@@ -8,7 +8,8 @@ program
   .requiredOption("--folder <path>")
   .requiredOption("--bucket <name>")
   .requiredOption("--key <key>")
-  .requiredOption("--storage-class <class>");
+  .requiredOption("--storage-class <class>")
+  .option("--ttl <days>");
 
 program.parse();
 
@@ -19,6 +20,7 @@ program.parse();
       bucket: z.string(),
       key: z.string(),
       storageClass: z.nativeEnum(StorageClass),
+      ttl: z.coerce.number().optional(),
     })
     .parse(program.opts());
 
@@ -47,6 +49,7 @@ program.parse();
     bucketName: options.bucket,
     folderToBackUp: path.join(process.cwd(), options.folder),
     storageClass: options.storageClass,
+    ttlInSeconds: options.ttl && options.ttl * 24 * 60 * 60,
   });
 
   switch (result.tag) {
