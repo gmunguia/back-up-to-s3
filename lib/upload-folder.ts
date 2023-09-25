@@ -50,13 +50,14 @@ export const uploadFolder = async ({
     folders: ["."],
   });
 
-  if (
-    uploadResult.checksum !==
-    (await calculateChecksum({
-      partSizeInBytes,
-      stream: tarForChecksum,
-    }))
-  ) {
+  const calculatedChecksum = await calculateChecksum({
+    partSizeInBytes,
+    stream: tarForChecksum,
+  });
+
+  console.info("checksums", uploadResult.checksum, calculatedChecksum);
+
+  if (uploadResult.checksum !== calculatedChecksum) {
     return {
       tag: "invalid checksum",
     };
