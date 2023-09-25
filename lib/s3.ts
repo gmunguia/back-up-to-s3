@@ -56,6 +56,10 @@ export const upload = async ({
     leavePartsOnError: true,
   });
 
+  uploading.on("httpUploadProgress", (progress) => {
+    console.info(progress)
+  });
+
   const output =
     // There's no tag to identify the type of `output`. We assume success and throw otherwise.
     (await uploading.done()) as CompleteMultipartUploadCommandOutput;

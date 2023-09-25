@@ -47,7 +47,7 @@ program.parse();
 
   switch (resultFifteenDaysAgo.tag) {
     case "success": {
-      console.log("last fortnigth's folder backed up successfully");
+      console.log("last fortnigth's folders backed up successfully");
       break;
     }
     case "upload failed": {
@@ -66,7 +66,7 @@ program.parse();
 
   switch (resultLastDay.tag) {
     case "success": {
-      console.log("last day's folder backed up successfully");
+      console.log("last day's folders backed up successfully");
       process.exit(0);
     }
     case "upload failed": {
