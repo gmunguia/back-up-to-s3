@@ -1,7 +1,9 @@
 {
   "name": "@gmunguia/back-up-to-s3",
   "version": "0.3.0",
-  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "upload-folder-to-s3": "./bin/upload-folder.js",
     "back-up-immich-files": "./bin/back-up-immich-files.js"
