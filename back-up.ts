@@ -25,7 +25,7 @@ export const backUp = async ({
 > => {
   const tarForUpload = archiveFolders({
     archiveBasePath: folderToBackUp,
-    folders: [folderToBackUp],
+    folders: ["."],
   });
 
   const uploadResult = await upload({
@@ -47,7 +47,7 @@ export const backUp = async ({
   // The alternative to creating the tar twice is using something like https://www.npmjs.com/package/cloneable-readable, but I don't want another dependency. I don't care too much about performance anyway because this script runs once a day.
   const tarForChecksum = archiveFolders({
     archiveBasePath: folderToBackUp,
-    folders: [folderToBackUp],
+    folders: ["."],
   });
 
   if (

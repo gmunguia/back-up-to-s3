@@ -1,17 +1,18 @@
+import * as path from "node:path";
 import { S3Client, StorageClass } from "@aws-sdk/client-s3";
 import { backUp } from "./back-up";
 import { program } from "commander";
 import z from "zod";
 
 program
-  .option("--folder")
-  .option("--bucket")
-  .option("--key")
-  .option("--storage-class");
+  .requiredOption("--folder <path>")
+  .requiredOption("--bucket <name>")
+  .requiredOption("--key <key>")
+  .requiredOption("--storage-class <class>");
+
+program.parse();
 
 (async () => {
-  program.parse();
-
   const options = z
     .object({
       folder: z.string(),
@@ -44,13 +45,14 @@ program
     s3Client,
     key: options.key,
     bucketName: options.bucket,
-    folderToBackUp: options.folder,
+    folderToBackUp: path.join(process.cwd(), options.folder),
     storageClass: options.storageClass,
   });
 
   switch (result.tag) {
     case "success": {
       console.log("folder backed up successfully");
+      process.exit(0);
     }
     case "upload failed": {
       console.log("upload failed");
@@ -58,7 +60,10 @@ program
     }
     case "invalid checksum": {
       console.log("upload failed");
-      process.exit(2);
+      process.exit(1);
     }
   }
-})();
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

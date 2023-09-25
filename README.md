@@ -9,7 +9,11 @@ bun install
 To run:
 
 ```bash
-bun run index.ts
+aws-vault ... -- cli --folder ...
 ```
 
-This project was created using `bun init` in bun v1.0.2. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+To test:
+
+```bash
+aws-vault ... -- npm run test
+```
