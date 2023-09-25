@@ -9,7 +9,7 @@ bun install
 To run:
 
 ```bash
-aws-vault ... -- cli --folder ...
+aws-vault ... -- npx back-up-immich-files --package @gmunguia/back-up-to-s3 --help
 ```
 
 To test:
@@ -22,7 +22,7 @@ aws-vault ... -- npm run test
 To build:
 
 ```bash
-npm run bundle
+npm run build
 ```
 
 To release:

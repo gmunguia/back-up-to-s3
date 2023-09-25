@@ -1,13 +1,15 @@
 {
-  "name": "@gmunguia/upload-folder-to-s3",
+  "name": "@gmunguia/back-up-to-s3",
   "version": "0.3.0",
+  "private": false,
   "bin": {
-    "upload-folder-to-s3": "./cli"
+    "upload-folder-to-s3": "./bin/upload-folder.js",
+    "back-up-immich-files": "./bin/back-up-immich-files.js"
   },
   "scripts": {
-    "bundle": "node bin/bundle-cli.mjs",
-    "test": "mocha --require esbuild-runner/register *.test.ts",
-    "test:debug": "node --inspect-brk --require esbuild-runner/register node_modules/.bin/mocha -t 0 *.test.ts"
+    "build": "node esbuild.mjs",
+    "test": "mocha --require esbuild-runner/register lib/*.test.ts",
+    "test:debug": "node --inspect-brk --require esbuild-runner/register node_modules/.bin/mocha -t 0 lib/*.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.414.0",

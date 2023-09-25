@@ -1,8 +1,8 @@
 import { S3Client, StorageClass } from "@aws-sdk/client-s3";
-import { archiveFolders } from "./lib/tar";
-import { calculateChecksum, upload, partSizeInBytes } from "./lib/s3";
+import { archiveFolders } from "./tar";
+import { calculateChecksum, upload, partSizeInBytes } from "./s3";
 
-export const backUp = async ({
+export const uploadFolder = async ({
   s3Client,
   key,
   folderToBackUp,

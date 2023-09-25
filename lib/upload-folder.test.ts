@@ -1,11 +1,15 @@
-import * as path from "path";
+import * as path from "node:path";
 import { it, describe, before } from "mocha";
 import { expect } from "expect";
-import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import z from "zod";
-import { backUp } from "./back-up";
+import { uploadFolder } from "./upload-folder";
 
-describe("back-up", function () {
+describe("upload-folder", function () {
   // Uploads take seconds to complete.
   this.timeout(10000);
 
@@ -36,10 +40,10 @@ describe("back-up", function () {
 
   describe("single file, 1MB", function () {
     it("uploads the file", async function () {
-      const result = await backUp({
+      const result = await uploadFolder({
         s3Client,
         key: `test-1-mb-${testRunId}`,
-        folderToBackUp: path.join(__dirname, "fixtures/single-file-1-mb"),
+        folderToBackUp: path.join(__dirname, "../fixtures/single-file-1-mb"),
         bucketName,
         ttlInSeconds: 1,
         storageClass: "STANDARD",
@@ -65,10 +69,10 @@ describe("back-up", function () {
 
   describe("single file, 10MB", function () {
     it("uploads the file", async function () {
-      const result = await backUp({
+      const result = await uploadFolder({
         s3Client,
         key: `test-10-mb-${testRunId}`,
-        folderToBackUp: path.join(__dirname, "fixtures/single-file-10-mb"),
+        folderToBackUp: path.join(__dirname, "../fixtures/single-file-10-mb"),
         bucketName,
         ttlInSeconds: 1,
       });
@@ -93,10 +97,10 @@ describe("back-up", function () {
 
   describe("two files", function () {
     it("uploads the files", async function () {
-      const result = await backUp({
+      const result = await uploadFolder({
         s3Client,
         key: `test-two-files-${testRunId}`,
-        folderToBackUp: path.join(__dirname, "fixtures/two-files"),
+        folderToBackUp: path.join(__dirname, "../fixtures/two-files"),
         bucketName,
         ttlInSeconds: 1,
       });

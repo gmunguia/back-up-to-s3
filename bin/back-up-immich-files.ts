@@ -1,26 +1,22 @@
-import * as path from "node:path";
-import { S3Client, StorageClass } from "@aws-sdk/client-s3";
-import { backUp } from "./back-up";
+import { S3Client } from "@aws-sdk/client-s3";
 import { program } from "commander";
 import z from "zod";
+import {
+  backUpFifteenDaysAgo,
+  backUpLastDay,
+} from "../lib/back-up-immich-files";
 
 program
-  .requiredOption("--folder <path>")
-  .requiredOption("--bucket <name>")
-  .requiredOption("--key <key>")
-  .requiredOption("--storage-class <class>")
-  .option("--ttl <days>");
+  .requiredOption("--upload-location <path>")
+  .requiredOption("--bucket <name>");
 
 program.parse();
 
 (async () => {
   const options = z
     .object({
-      folder: z.string(),
+      uploadLocation: z.string(),
       bucket: z.string(),
-      key: z.string(),
-      storageClass: z.nativeEnum(StorageClass),
-      ttl: z.coerce.number().optional(),
     })
     .parse(program.opts());
 
@@ -42,26 +38,40 @@ program.parse();
     region: env.AWS_REGION,
   });
 
-  const result = await backUp({
+  const resultFifteenDaysAgo = await backUpFifteenDaysAgo({
     s3Client,
-    key: options.key,
     bucketName: options.bucket,
-    folderToBackUp: path.join(process.cwd(), options.folder),
-    storageClass: options.storageClass,
-    ttlInSeconds: options.ttl && options.ttl * 24 * 60 * 60,
+    now: new Date(),
+    uploadLocation: options.uploadLocation,
   });
 
-  switch (result.tag) {
+  switch (resultFifteenDaysAgo.tag) {
+    case "success": {
+      console.log("folder backed up successfully");
+      break;
+    }
+    case "upload failed": {
+      console.error("upload failed");
+      console.error(resultFifteenDaysAgo.details);
+      process.exit(1);
+    }
+  }
+
+  const resultLastDay = await backUpLastDay({
+    s3Client,
+    bucketName: options.bucket,
+    now: new Date(),
+    uploadLocation: options.uploadLocation,
+  });
+
+  switch (resultLastDay.tag) {
     case "success": {
       console.log("folder backed up successfully");
       process.exit(0);
     }
     case "upload failed": {
-      console.log("upload failed");
-      process.exit(1);
-    }
-    case "invalid checksum": {
-      console.log("upload failed");
+      console.error("upload failed");
+      console.error(resultLastDay.details);
       process.exit(1);
     }
   }
