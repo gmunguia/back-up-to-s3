@@ -7,5 +7,5 @@
 # |  |  |  |  |
 # *  *  *  *  * user-name command to be executed
 
-0 3 * * * root for f in "${UPLOAD_LOCATION}/library/*/$(date '+%Y/%m/%d')" ; do npx @gmunguia/upload-folder-to-s3 --folder ${f} --bucket ${BUCKET_NAME} --key "temporary-backups/${f}.tgz" --storage-class STANDARD --ttl 30 >/proc/1/fd/1 2>/proc/1/fd/2; done
-0 4 * * * root for f in "${UPLOAD_LOCATION}/library/*/$(date '+%Y/%m/%d')"; do npx @gmunguia/upload-folder-to-s3 --folder ${f} --bucket ${BUCKET_NAME} --key "backups/${f}.tgz" --storage-class DEEP_ARCHIVE >/proc/1/fd/1 2>/proc/1/fd/2; done
+0 3 * * * sh /back-up-yesterday.sh
+0 4 * * * sh /back-up-deep.sh

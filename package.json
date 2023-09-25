@@ -1,8 +1,11 @@
 {
-  "name": "backup-immich-files",
-  "module": "index.ts",
+  "name": "@gmunguia/upload-folder-to-s3",
+  "version": "0.1.0",
+  "bin": {
+    "upload-folder-to-s3": "./cli"
+  },
   "scripts": {
-    "bundle": "node bin/bundle-cli.js",
+    "bundle": "node bin/bundle-cli.mjs",
     "test": "mocha --require esbuild-runner/register *.test.ts",
     "test:debug": "node --inspect-brk --require esbuild-runner/register node_modules/.bin/mocha -t 0 *.test.ts"
   },
