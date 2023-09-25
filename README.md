@@ -15,6 +15,7 @@ aws-vault ... -- cli --folder ...
 To test:
 
 ```bash
+export BUCKET_NAME=...
 aws-vault ... -- npm run test
 ```
 
@@ -22,6 +23,12 @@ To build:
 
 ```bash
 npm run bundle
+```
+
+To release:
+
+```bash
+npx release-it
 ```
 
 Other:
