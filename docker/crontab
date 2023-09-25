@@ -1,0 +1,11 @@
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name command to be executed
+
+0 3 * * * root for f in "${UPLOAD_LOCATION}/library/*/$(date '+%Y/%m/%d')" ; do npx @gmunguia/upload-folder-to-s3 --folder ${f} --bucket ${BUCKET_NAME} --key "temporary-backups/${f}.tgz" --storage-class STANDARD --ttl 30 >/proc/1/fd/1 2>/proc/1/fd/2; done
+0 4 * * * root for f in "${UPLOAD_LOCATION}/library/*/$(date '+%Y/%m/%d')"; do npx @gmunguia/upload-folder-to-s3 --folder ${f} --bucket ${BUCKET_NAME} --key "backups/${f}.tgz" --storage-class DEEP_ARCHIVE >/proc/1/fd/1 2>/proc/1/fd/2; done
