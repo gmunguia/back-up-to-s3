@@ -1,5 +1,6 @@
 import { PassThrough } from "stream";
 import tar from "tar";
+import { logger } from "./logger";
 
 export const archiveFolders = ({
   archiveBasePath,
@@ -8,6 +9,8 @@ export const archiveFolders = ({
   archiveBasePath: string;
   folders: string[];
 }) => {
+  logger.debug("archiving folders %o", folders);
+
   return tar
     .create(
       {

@@ -1,6 +1,7 @@
 import { S3Client, StorageClass } from "@aws-sdk/client-s3";
 import { archiveFolders } from "./tar";
 import { calculateChecksum, upload, partSizeInBytes } from "./s3";
+import { logger } from "./logger";
 
 export const uploadFolder = async ({
   s3Client,
@@ -23,6 +24,8 @@ export const uploadFolder = async ({
   | { tag: "upload failed" }
   | { tag: "invalid checksum" }
 > => {
+  logger.debug("uploading folder %s", folderToBackUp);
+
   const tarForUpload = archiveFolders({
     archiveBasePath: folderToBackUp,
     folders: ["."],
@@ -37,6 +40,8 @@ export const uploadFolder = async ({
     ttlInSeconds,
     storageClass,
   });
+
+  logger.debug("upload result %o", uploadResult);
 
   if (uploadResult.tag === "failure") {
     return {
@@ -55,9 +60,10 @@ export const uploadFolder = async ({
     stream: tarForChecksum,
   });
 
-  console.info("checksums", uploadResult.checksum, calculatedChecksum);
+  logger.debug("locally calculated checksum %s", calculatedChecksum);
 
   if (uploadResult.checksum !== calculatedChecksum) {
+    logger.debug("checksums don't match");
     return {
       tag: "invalid checksum",
     };

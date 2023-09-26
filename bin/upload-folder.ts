@@ -3,6 +3,7 @@ import { S3Client, StorageClass } from "@aws-sdk/client-s3";
 import { program } from "commander";
 import z from "zod";
 import { uploadFolder } from "../lib/upload-folder";
+import { logger } from "../lib/logger";
 
 program
   .requiredOption("--folder <path>")
@@ -23,6 +24,8 @@ program.parse();
       ttl: z.coerce.number().optional(),
     })
     .parse(program.opts());
+
+  logger("running upload-folder with %o", options);
 
   const env = z
     .object({
@@ -50,6 +53,8 @@ program.parse();
     storageClass: options.storageClass,
     ttlInSeconds: options.ttl && options.ttl * 24 * 60 * 60,
   });
+
+  logger("upload-folder result %o", result);
 
   switch (result.tag) {
     case "success": {

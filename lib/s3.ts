@@ -6,6 +6,7 @@ import {
   StorageClass,
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+import { logger } from "./logger";
 
 export const partSizeInBytes = 5 * 1024 * 1024; // 5 MB
 
@@ -40,6 +41,8 @@ export const upload = async ({
     }
   | { tag: "failure" }
 > => {
+  logger.debug("starting upload of %s", key);
+
   const uploading = new Upload({
     client: s3Client,
     params: {
@@ -57,12 +60,14 @@ export const upload = async ({
   });
 
   uploading.on("httpUploadProgress", (progress) => {
-    console.info(progress);
+    logger.debug("multipart upload progress %o", progress);
   });
 
   const output =
     // There's no tag to identify the type of `output`. We assume success and throw otherwise.
     (await uploading.done()) as CompleteMultipartUploadCommandOutput;
+
+  logger.debug("multipart upload output %o", output);
 
   if (output.ChecksumSHA256 == null) {
     return { tag: "failure" };

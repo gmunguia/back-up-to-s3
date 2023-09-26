@@ -18,10 +18,12 @@
     "@aws-sdk/lib-storage": "^3.414.0",
     "commander": "^11.0.0",
     "glob": "^10.3.5",
+    "pino": "^8.15.1",
     "tar": "^6.2.0",
     "zod": "^3.22.2"
   },
   "devDependencies": {
+    "@types/debug": "^4.1.9",
     "@types/mocha": "^10.0.1",
     "@types/tar": "^6.1.6",
     "bun-types": "latest",

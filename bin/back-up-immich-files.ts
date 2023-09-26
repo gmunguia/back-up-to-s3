@@ -5,6 +5,7 @@ import {
   backUpFifteenDaysAgo,
   backUpLastDay,
 } from "../lib/back-up-immich-files";
+import { logger } from "../lib/logger";
 
 program
   .requiredOption("--upload-location <path>")
@@ -19,6 +20,8 @@ program.parse();
       bucket: z.string(),
     })
     .parse(program.opts());
+
+  logger("running back-up-immich-files with %o", options);
 
   const env = z
     .object({
@@ -45,6 +48,8 @@ program.parse();
     uploadLocation: options.uploadLocation,
   });
 
+  logger("uploading fifteen days ago result %o", resultFifteenDaysAgo);
+
   switch (resultFifteenDaysAgo.tag) {
     case "success": {
       console.log("last fortnigth's folders backed up successfully");
@@ -63,6 +68,8 @@ program.parse();
     now: new Date(),
     uploadLocation: options.uploadLocation,
   });
+
+  logger("uploading last day result %o", resultLastDay);
 
   switch (resultLastDay.tag) {
     case "success": {
