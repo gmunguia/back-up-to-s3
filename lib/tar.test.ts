@@ -24,7 +24,7 @@ describe("tar", function () {
   describe("given folder", function () {
     it("should create an archive with its contents", async function () {
       const tar = archiveFolders({
-        archiveBasePath: path.join(__dirname, "../fixtures/two-files"),
+        archiveBasePath: path.join(__dirname, "../fixtures/multiple-files"),
         folders: ["."],
       });
 
@@ -33,7 +33,10 @@ describe("tar", function () {
       expect(filesInTar).toEqual(
         expect.arrayContaining([
           "./Free_Test_Data_1MB_JPG.jpg",
-          "./Free_Test_Data_10MB_MP4.mp4",
+          "./Free_Test_Data_10MB_MP4_1.mp4",
+          "./Free_Test_Data_10MB_MP4_2.mp4",
+          "./Free_Test_Data_10MB_MP4_3.mp4",
+          "./Free_Test_Data_10MB_MP4_4.mp4",
         ]),
       );
     });

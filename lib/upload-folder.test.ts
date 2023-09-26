@@ -1,11 +1,7 @@
 import * as path from "node:path";
 import { it, describe, before } from "mocha";
 import { expect } from "expect";
-import {
-  DeleteObjectsCommand,
-  ListObjectsV2Command,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 import z from "zod";
 import { uploadFolder } from "./upload-folder";
 
@@ -99,8 +95,8 @@ describe("upload-folder", function () {
     it("uploads the files", async function () {
       const result = await uploadFolder({
         s3Client,
-        key: `test-two-files-${testRunId}`,
-        folderToBackUp: path.join(__dirname, "../fixtures/two-files"),
+        key: `test-multiple-files-${testRunId}`,
+        folderToBackUp: path.join(__dirname, "../fixtures/multiple-files"),
         bucketName,
         ttlInSeconds: 1,
       });
@@ -116,7 +112,7 @@ describe("upload-folder", function () {
       expect(response.Contents).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            Key: `test-two-files-${testRunId}`,
+            Key: `test-multiple-files-${testRunId}`,
           }),
         ]),
       );

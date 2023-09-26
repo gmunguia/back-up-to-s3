@@ -57,7 +57,7 @@ export const upload = async ({
   });
 
   uploading.on("httpUploadProgress", (progress) => {
-    console.info(progress)
+    console.info(progress);
   });
 
   const output =
@@ -123,6 +123,17 @@ class ChecksumCalculator extends Transform {
   }
 }
 
+const streamToArray = (stream: Readable): Promise<any[]> => {
+  const array: any[] = [];
+  return new Promise((resolve) => {
+    stream
+      .on("data", (chunk) => {
+        array.push(chunk);
+      })
+      .on("end", () => resolve(array));
+  });
+};
+
 // See https://docs.aws.amazon.com/AmazonS3/latest/userguide/checking-object-integrity.html?icmpid=docs_amazons3_console#large-object-checksums.
 // At some point, the SDK may do this automatically. See https://github.com/aws/aws-sdk-js-v3/issues/2673
 export const calculateChecksum = async ({
@@ -132,10 +143,11 @@ export const calculateChecksum = async ({
   partSizeInBytes: number;
   stream: Readable;
 }) => {
-  const checksumsOfParts: Buffer[] = await stream
-    .pipe(new StreamChunker(partSizeInBytes))
-    .pipe(new ChecksumCalculator())
-    .toArray();
+  const checksumsOfParts: Buffer[] = await streamToArray(
+    stream
+      .pipe(new StreamChunker(partSizeInBytes))
+      .pipe(new ChecksumCalculator()),
+  );
 
   if (checksumsOfParts.length === 1) {
     return checksumsOfParts[0].toString("base64");
