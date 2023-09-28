@@ -1,6 +1,6 @@
 {
   "name": "@gmunguia/back-up-to-s3",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "publishConfig": {
     "access": "public"
   },
@@ -16,7 +16,11 @@
   },
   "release-it": {
     "hooks": {
-      "before:release": ["npm run check-types", "npm run test", "npm run build"]
+      "before:release": [
+        "npm run check-types",
+        "npm run test",
+        "npm run build"
+      ]
     }
   },
   "dependencies": {
