@@ -21,7 +21,7 @@ program.parse();
     })
     .parse(program.opts());
 
-  logger("running back-up-immich-files with %o", options);
+  logger.debug("running back-up-immich-files with %o", options);
 
   const env = z
     .object({
@@ -48,16 +48,15 @@ program.parse();
     uploadLocation: options.uploadLocation,
   });
 
-  logger("uploading fifteen days ago result %o", resultFifteenDaysAgo);
+  logger.debug("uploading fifteen days ago result %o", resultFifteenDaysAgo);
 
   switch (resultFifteenDaysAgo.tag) {
     case "success": {
-      console.log("last fortnigth's folders backed up successfully");
+      logger.info("last fortnigth's folders backed up successfully");
       break;
     }
     case "upload failed": {
-      console.error("upload failed");
-      console.error(resultFifteenDaysAgo.details);
+      logger.error("upload failed");
       process.exit(1);
     }
   }
@@ -69,20 +68,19 @@ program.parse();
     uploadLocation: options.uploadLocation,
   });
 
-  logger("uploading last day result %o", resultLastDay);
+  logger.debug("uploading last day result %o", resultLastDay);
 
   switch (resultLastDay.tag) {
     case "success": {
-      console.log("last day's folders backed up successfully");
+      logger.info("last day's folders backed up successfully");
       process.exit(0);
     }
     case "upload failed": {
-      console.error("upload failed");
-      console.error(resultLastDay.details);
+      logger.error("upload failed");
       process.exit(1);
     }
   }
 })().catch((error) => {
-  console.error(error);
+  logger.error(error);
   process.exit(1);
 });

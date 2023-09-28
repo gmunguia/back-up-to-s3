@@ -10,8 +10,14 @@
   },
   "scripts": {
     "build": "node esbuild.mjs",
+    "check-types": "tsc --noEmit",
     "test": "mocha --require esbuild-runner/register lib/*.test.ts",
     "test:debug": "node --inspect-brk --require esbuild-runner/register node_modules/.bin/mocha -t 0 lib/*.test.ts"
+  },
+  "release-it": {
+    "hooks": {
+      "before:release": ["npm run check-types", "npm run test", "npm run build"]
+    }
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.414.0",

@@ -171,6 +171,6 @@ dist
 # IntelliJ based IDEs
 .idea
 
-# esbuild outputs
+# build outputs
 **/*.js
-cli
+tsconfig.tsbuildinfo

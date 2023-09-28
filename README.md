@@ -28,7 +28,7 @@ npm run build
 To release:
 
 ```bash
-npx release-it
+aws-vault ... -- npx release-it
 ```
 
 Other:

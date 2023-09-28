@@ -25,7 +25,7 @@ program.parse();
     })
     .parse(program.opts());
 
-  logger("running upload-folder with %o", options);
+  logger.debug("running upload-folder with %o", options);
 
   const env = z
     .object({
@@ -54,23 +54,23 @@ program.parse();
     ttlInSeconds: options.ttl && options.ttl * 24 * 60 * 60,
   });
 
-  logger("upload-folder result %o", result);
+  logger.debug("upload-folder result %o", result);
 
   switch (result.tag) {
     case "success": {
-      console.log("folder backed up successfully");
+      logger.info("folder backed up successfully");
       process.exit(0);
     }
     case "upload failed": {
-      console.error("upload failed");
+      logger.error("upload failed");
       process.exit(1);
     }
     case "invalid checksum": {
-      console.error("upload failed");
+      logger.error("upload failed");
       process.exit(1);
     }
   }
 })().catch((error) => {
-  console.error(error);
+  logger.error(error);
   process.exit(1);
 });
